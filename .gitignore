@@ -22,11 +22,11 @@ coverage/
 /cypress/screenshots/
 /cypress/support/**/*.js.map
 /cypress/videos/
-/declarations/
-/dist/
+#/declarations/
+#/dist/
 /examples/index.html
 /examples/thumbnails/
-/peer/
-/standalone/
-/styles/
+#/peer/
+#/standalone/
+#/styles/
 vis-network-*.tgz
