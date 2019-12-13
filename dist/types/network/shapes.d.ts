@@ -149,7 +149,7 @@ declare const shapeMap: {
     star: typeof drawStar;
     triangle: typeof drawTriangle;
     triangleDown: typeof drawTriangleDown;
-    CircleAroundCircle: typeof drawCircleAroundCircle;
+    circleAroundCircle: typeof drawCircleAroundCircle;
 };
 /**
  * Returns either custom or native drawing function base on supplied name.

@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 0.0.0-no-version
- * @date    2019-12-13T09:04:39Z
+ * @date    2019-12-13T10:28:02Z
  *
  * @copyright (c) 2011-2017 Almende B.V, http://almende.com
  * @copyright (c) 2018-2019 visjs contributors, https://github.com/visjs
@@ -857,7 +857,7 @@ var shapeMap = {
   star: drawStar,
   triangle: drawTriangle,
   triangleDown: drawTriangleDown,
-  CircleAroundCircle: drawCircleAroundCircle
+  circleAroundCircle: drawCircleAroundCircle
 };
 /**
  * Returns either custom or native drawing function base on supplied name.
