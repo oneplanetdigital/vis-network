@@ -425,7 +425,7 @@ const shapeMap = {
   star: drawStar,
   triangle: drawTriangle,
   triangleDown: drawTriangleDown,
-  CircleAroundCircle: drawCircleAroundCircle
+  circleAroundCircle: drawCircleAroundCircle
 };
 
 /**
