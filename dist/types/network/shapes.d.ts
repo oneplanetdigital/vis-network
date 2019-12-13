@@ -41,6 +41,14 @@ export declare function drawTriangle(ctx: CanvasRenderingContext2D, x: number, y
  */
 export declare function drawTriangleDown(ctx: CanvasRenderingContext2D, x: number, y: number, r: number): void;
 /**
+ * Draw a circleAroundCircle shape in downward orientation
+ * @param {number} x horizontal center
+ * @param {number} y vertical center
+ * @param {number} r radius
+ * @param {string} color color
+ */
+export declare function drawCircleAroundCircle(ctx: CanvasRenderingContext2D, x: number, y: number, r: number, color: string): void;
+/**
  * Draw a star.
  *
  * @param ctx - The context this shape will be rendered to.
@@ -141,6 +149,7 @@ declare const shapeMap: {
     star: typeof drawStar;
     triangle: typeof drawTriangle;
     triangleDown: typeof drawTriangleDown;
+    CircleAroundCircle: typeof drawCircleAroundCircle;
 };
 /**
  * Returns either custom or native drawing function base on supplied name.

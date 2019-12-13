@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 0.0.0-no-version
- * @date    2019-12-12T18:16:24Z
+ * @date    2019-12-13T09:01:45Z
  *
  * @copyright (c) 2011-2017 Almende B.V, http://almende.com
  * @copyright (c) 2018-2019 visjs contributors, https://github.com/visjs
@@ -411,6 +411,72 @@
 
 	var bind$2 = bind$1;
 
+	// `ToObject` abstract operation
+	// https://tc39.github.io/ecma262/#sec-toobject
+	var toObject = function (argument) {
+	  return Object(requireObjectCoercible(argument));
+	};
+
+	var ceil = Math.ceil;
+	var floor = Math.floor;
+
+	// `ToInteger` abstract operation
+	// https://tc39.github.io/ecma262/#sec-tointeger
+	var toInteger = function (argument) {
+	  return isNaN(argument = +argument) ? 0 : (argument > 0 ? floor : ceil)(argument);
+	};
+
+	var max = Math.max;
+	var min = Math.min;
+
+	// Helper for a popular repeating case of the spec:
+	// Let integer be ? ToInteger(index).
+	// If integer < 0, let result be max((length + integer), 0); else let result be min(integer, length).
+	var toAbsoluteIndex = function (index, length) {
+	  var integer = toInteger(index);
+	  return integer < 0 ? max(integer + length, 0) : min(integer, length);
+	};
+
+	var min$1 = Math.min;
+
+	// `ToLength` abstract operation
+	// https://tc39.github.io/ecma262/#sec-tolength
+	var toLength = function (argument) {
+	  return argument > 0 ? min$1(toInteger(argument), 0x1FFFFFFFFFFFFF) : 0; // 2 ** 53 - 1 == 9007199254740991
+	};
+
+	// `Array.prototype.fill` method implementation
+	// https://tc39.github.io/ecma262/#sec-array.prototype.fill
+	var arrayFill = function fill(value /* , start = 0, end = @length */) {
+	  var O = toObject(this);
+	  var length = toLength(O.length);
+	  var argumentsLength = arguments.length;
+	  var index = toAbsoluteIndex(argumentsLength > 1 ? arguments[1] : undefined, length);
+	  var end = argumentsLength > 2 ? arguments[2] : undefined;
+	  var endPos = end === undefined ? length : toAbsoluteIndex(end, length);
+	  while (endPos > index) O[index++] = value;
+	  return O;
+	};
+
+	// `Array.prototype.fill` method
+	// https://tc39.github.io/ecma262/#sec-array.prototype.fill
+	_export({ target: 'Array', proto: true }, {
+	  fill: arrayFill
+	});
+
+	var fill = entryVirtual('Array').fill;
+
+	var ArrayPrototype = Array.prototype;
+
+	var fill_1 = function (it) {
+	  var own = it.fill;
+	  return it === ArrayPrototype || (it instanceof Array && own === ArrayPrototype.fill) ? fill : own;
+	};
+
+	var fill$1 = fill_1;
+
+	var fill$2 = fill$1;
+
 	/**
 	 * Draw a circle.
 	 *
@@ -494,6 +560,38 @@
 	  ctx.lineTo(x + s2, y - ir);
 	  ctx.lineTo(x - s2, y - ir);
 	  ctx.lineTo(x, y + (h - ir));
+	  ctx.closePath();
+	}
+	/**
+	 * Draw a circleAroundCircle shape in downward orientation
+	 * @param {number} x horizontal center
+	 * @param {number} y vertical center
+	 * @param {number} r radius
+	 * @param {string} color color
+	 */
+	// eslint-disable-next-line require-jsdoc
+
+	function drawCircleAroundCircle(ctx, x, y, r, color) {
+	  ctx.beginPath();
+	  ctx.fillStyle = color;
+	  ctx.arc(x, y, r + 11, 0, 2 * Math.PI, false);
+
+	  fill$2(ctx).call(ctx);
+
+	  ctx.closePath();
+	  ctx.beginPath();
+	  ctx.fillStyle = "#fff";
+	  ctx.arc(x, y, r + 9, 0, 2 * Math.PI, false);
+
+	  fill$2(ctx).call(ctx);
+
+	  ctx.closePath();
+	  ctx.beginPath();
+	  ctx.fillStyle = color;
+	  ctx.arc(x, y, r, 0, 2 * Math.PI, false);
+
+	  fill$2(ctx).call(ctx);
+
 	  ctx.closePath();
 	}
 	/**
@@ -744,7 +842,8 @@
 	  square: drawSquare,
 	  star: drawStar,
 	  triangle: drawTriangle,
-	  triangleDown: drawTriangleDown
+	  triangleDown: drawTriangleDown,
+	  CircleAroundCircle: drawCircleAroundCircle
 	};
 	/**
 	 * Returns either custom or native drawing function base on supplied name.
@@ -1295,40 +1394,40 @@
 
 	var defineProperty$1 = defineProperty;
 
-	var ceil = Math.ceil;
-	var floor = Math.floor;
+	var ceil$1 = Math.ceil;
+	var floor$1 = Math.floor;
 
 	// `ToInteger` abstract operation
 	// https://tc39.github.io/ecma262/#sec-tointeger
-	var toInteger = function (argument) {
-	  return isNaN(argument = +argument) ? 0 : (argument > 0 ? floor : ceil)(argument);
+	var toInteger$1 = function (argument) {
+	  return isNaN(argument = +argument) ? 0 : (argument > 0 ? floor$1 : ceil$1)(argument);
 	};
 
-	var min = Math.min;
+	var min$2 = Math.min;
 
 	// `ToLength` abstract operation
 	// https://tc39.github.io/ecma262/#sec-tolength
-	var toLength = function (argument) {
-	  return argument > 0 ? min(toInteger(argument), 0x1FFFFFFFFFFFFF) : 0; // 2 ** 53 - 1 == 9007199254740991
+	var toLength$1 = function (argument) {
+	  return argument > 0 ? min$2(toInteger$1(argument), 0x1FFFFFFFFFFFFF) : 0; // 2 ** 53 - 1 == 9007199254740991
 	};
 
-	var max = Math.max;
-	var min$1 = Math.min;
+	var max$1 = Math.max;
+	var min$1$1 = Math.min;
 
 	// Helper for a popular repeating case of the spec:
 	// Let integer be ? ToInteger(index).
 	// If integer < 0, let result be max((length + integer), 0); else let result be min(length, length).
-	var toAbsoluteIndex = function (index, length) {
-	  var integer = toInteger(index);
-	  return integer < 0 ? max(integer + length, 0) : min$1(integer, length);
+	var toAbsoluteIndex$1 = function (index, length) {
+	  var integer = toInteger$1(index);
+	  return integer < 0 ? max$1(integer + length, 0) : min$1$1(integer, length);
 	};
 
 	// `Array.prototype.{ indexOf, includes }` methods implementation
 	var createMethod = function (IS_INCLUDES) {
 	  return function ($this, el, fromIndex) {
 	    var O = toIndexedObject$1($this);
-	    var length = toLength(O.length);
-	    var index = toAbsoluteIndex(fromIndex, length);
+	    var length = toLength$1(O.length);
+	    var index = toAbsoluteIndex$1(fromIndex, length);
 	    var value;
 	    // Array#includes uses SameValueZero equality algorithm
 	    // eslint-disable-next-line no-self-compare
@@ -1525,7 +1624,7 @@
 
 	// `ToObject` abstract operation
 	// https://tc39.github.io/ecma262/#sec-toobject
-	var toObject = function (argument) {
+	var toObject$1 = function (argument) {
 	  return Object(requireObjectCoercible$1(argument));
 	};
 
@@ -1807,10 +1906,10 @@
 	  var IS_FIND_INDEX = TYPE == 6;
 	  var NO_HOLES = TYPE == 5 || IS_FIND_INDEX;
 	  return function ($this, callbackfn, that, specificCreate) {
-	    var O = toObject($this);
+	    var O = toObject$1($this);
 	    var self = indexedObject$1(O);
 	    var boundFunction = bindContext$1(callbackfn, that, 3);
-	    var length = toLength(self.length);
+	    var length = toLength$1(self.length);
 	    var index = 0;
 	    var create = specificCreate || arraySpeciesCreate;
 	    var target = IS_MAP ? create($this, length) : IS_FILTER ? create($this, 0) : undefined;
@@ -2078,7 +2177,7 @@
 	// https://bugs.chromium.org/p/v8/issues/detail?id=3443
 	_export$1({ target: 'Object', stat: true, forced: fails$1(function () { objectGetOwnPropertySymbols.f(1); }) }, {
 	  getOwnPropertySymbols: function getOwnPropertySymbols(it) {
-	    return objectGetOwnPropertySymbols.f(toObject(it));
+	    return objectGetOwnPropertySymbols.f(toObject$1(it));
 	  }
 	});
 
@@ -2145,7 +2244,7 @@
 	// `Object.getPrototypeOf` method
 	// https://tc39.github.io/ecma262/#sec-object.getprototypeof
 	var objectGetPrototypeOf = correctPrototypeGetter ? Object.getPrototypeOf : function (O) {
-	  O = toObject(O);
+	  O = toObject$1(O);
 	  if (has$1(O, IE_PROTO$1)) return O[IE_PROTO$1];
 	  if (typeof O.constructor == 'function' && O instanceof O.constructor) {
 	    return O.constructor.prototype;
@@ -2384,7 +2483,7 @@
 	var createMethod$2 = function (CONVERT_TO_STRING) {
 	  return function ($this, pos) {
 	    var S = String(requireObjectCoercible$1($this));
-	    var position = toInteger(pos);
+	    var position = toInteger$1(pos);
 	    var size = S.length;
 	    var first, second;
 	    if (position < 0 || position >= size) return CONVERT_TO_STRING ? '' : undefined;
@@ -2496,7 +2595,7 @@
 	// https://tc39.github.io/ecma262/#sec-object.keys
 	_export$1({ target: 'Object', stat: true, forced: FAILS_ON_PRIMITIVES$1 }, {
 	  keys: function keys(it) {
-	    return objectKeys(toObject(it));
+	    return objectKeys(toObject$1(it));
 	  }
 	});
 
@@ -2602,7 +2701,7 @@
 
 	var forEach$1 = forEach;
 
-	var ArrayPrototype = Array.prototype;
+	var ArrayPrototype$1 = Array.prototype;
 
 	var DOMIterables = {
 	  DOMTokenList: true,
@@ -2611,7 +2710,7 @@
 
 	var forEach_1 = function (it) {
 	  var own = it.forEach;
-	  return it === ArrayPrototype || (it instanceof Array && own === ArrayPrototype.forEach)
+	  return it === ArrayPrototype$1 || (it instanceof Array && own === ArrayPrototype$1.forEach)
 	    // eslint-disable-next-line no-prototype-builtins
 	    || DOMIterables.hasOwnProperty(classof(it)) ? forEach$1 : own;
 	};
@@ -2668,11 +2767,11 @@
 
 	var map = entryVirtual$1('Array').map;
 
-	var ArrayPrototype$1 = Array.prototype;
+	var ArrayPrototype$1$1 = Array.prototype;
 
 	var map_1 = function (it) {
 	  var own = it.map;
-	  return it === ArrayPrototype$1 || (it instanceof Array && own === ArrayPrototype$1.map) ? map : own;
+	  return it === ArrayPrototype$1$1 || (it instanceof Array && own === ArrayPrototype$1$1.map) ? map : own;
 	};
 
 	var map$1 = map_1;
@@ -2804,14 +2903,14 @@
 	// with adding support of @@isConcatSpreadable and @@species
 	_export$1({ target: 'Array', proto: true, forced: FORCED$2 }, {
 	  concat: function concat(arg) { // eslint-disable-line no-unused-vars
-	    var O = toObject(this);
+	    var O = toObject$1(this);
 	    var A = arraySpeciesCreate(O, 0);
 	    var n = 0;
 	    var i, k, length, len, E;
 	    for (i = -1, length = arguments.length; i < length; i++) {
 	      E = i === -1 ? O : arguments[i];
 	      if (isConcatSpreadable(E)) {
-	        len = toLength(E.length);
+	        len = toLength$1(E.length);
 	        if (n + len > MAX_SAFE_INTEGER) throw TypeError(MAXIMUM_ALLOWED_INDEX_EXCEEDED);
 	        for (k = 0; k < len; k++, n++) if (k in E) createProperty(A, n, E[k]);
 	      } else {
@@ -2884,7 +2983,7 @@
 	// `Array.from` method implementation
 	// https://tc39.github.io/ecma262/#sec-array.from
 	var arrayFrom = function from(arrayLike /* , mapfn = undefined, thisArg = undefined */) {
-	  var O = toObject(arrayLike);
+	  var O = toObject$1(arrayLike);
 	  var C = typeof this == 'function' ? this : Array;
 	  var argumentsLength = arguments.length;
 	  var mapfn = argumentsLength > 1 ? arguments[1] : undefined;
@@ -2905,7 +3004,7 @@
 	      );
 	    }
 	  } else {
-	    length = toLength(O.length);
+	    length = toLength$1(O.length);
 	    result = new C(length);
 	    for (;length > index; index++) {
 	      createProperty(result, index, mapping ? mapfn(O[index], index) : O[index]);
@@ -3002,7 +3101,7 @@
 
 	var SPECIES$2 = wellKnownSymbol('species');
 	var nativeSlice = [].slice;
-	var max$1 = Math.max;
+	var max$1$1 = Math.max;
 
 	// `Array.prototype.slice` method
 	// https://tc39.github.io/ecma262/#sec-array.prototype.slice
@@ -3010,9 +3109,9 @@
 	_export$1({ target: 'Array', proto: true, forced: !arrayMethodHasSpeciesSupport('slice') }, {
 	  slice: function slice(start, end) {
 	    var O = toIndexedObject$1(this);
-	    var length = toLength(O.length);
-	    var k = toAbsoluteIndex(start, length);
-	    var fin = toAbsoluteIndex(end === undefined ? length : end, length);
+	    var length = toLength$1(O.length);
+	    var k = toAbsoluteIndex$1(start, length);
+	    var fin = toAbsoluteIndex$1(end === undefined ? length : end, length);
 	    // inline `ArraySpeciesCreate` for usage native `Array#slice` where it's possible
 	    var Constructor, result, n;
 	    if (isArray(O)) {
@@ -3028,7 +3127,7 @@
 	        return nativeSlice.call(O, k, fin);
 	      }
 	    }
-	    result = new (Constructor === undefined ? Array : Constructor)(max$1(fin - k, 0));
+	    result = new (Constructor === undefined ? Array : Constructor)(max$1$1(fin - k, 0));
 	    for (n = 0; k < fin; k++, n++) if (k in O) createProperty(result, n, O[k]);
 	    result.length = n;
 	    return result;
@@ -3054,7 +3153,7 @@
 	// https://tc39.github.io/ecma262/#sec-object.getprototypeof
 	_export$1({ target: 'Object', stat: true, forced: FAILS_ON_PRIMITIVES$2, sham: !correctPrototypeGetter }, {
 	  getPrototypeOf: function getPrototypeOf(it) {
-	    return objectGetPrototypeOf(toObject(it));
+	    return objectGetPrototypeOf(toObject$1(it));
 	  }
 	});
 
@@ -3115,7 +3214,7 @@
 	  alphabet.split('').forEach(function (chr) { B[chr] = chr; });
 	  return nativeAssign({}, A)[symbol] != 7 || objectKeys(nativeAssign({}, B)).join('') != alphabet;
 	}) ? function assign(target, source) { // eslint-disable-line no-unused-vars
-	  var T = toObject(target);
+	  var T = toObject$1(target);
 	  var argumentsLength = arguments.length;
 	  var index = 1;
 	  var getOwnPropertySymbols = objectGetOwnPropertySymbols.f;
@@ -5374,12 +5473,6 @@
 	  getterFor: getterFor$1
 	};
 
-	// `ToObject` abstract operation
-	// https://tc39.github.io/ecma262/#sec-toobject
-	var toObject$1 = function (argument) {
-	  return Object(requireObjectCoercible(argument));
-	};
-
 	var correctPrototypeGetter$1 = !fails(function () {
 	  function F() { /* empty */ }
 	  F.prototype.constructor = null;
@@ -5392,7 +5485,7 @@
 	// `Object.getPrototypeOf` method
 	// https://tc39.github.io/ecma262/#sec-object.getprototypeof
 	var objectGetPrototypeOf$1 = correctPrototypeGetter$1 ? Object.getPrototypeOf : function (O) {
-	  O = toObject$1(O);
+	  O = toObject(O);
 	  if (has(O, IE_PROTO$2)) return O[IE_PROTO$2];
 	  if (typeof O.constructor == 'function' && O instanceof O.constructor) {
 	    return O.constructor.prototype;
@@ -5446,40 +5539,12 @@
 	  BUGGY_SAFARI_ITERATORS: BUGGY_SAFARI_ITERATORS$2
 	};
 
-	var ceil$1 = Math.ceil;
-	var floor$1 = Math.floor;
-
-	// `ToInteger` abstract operation
-	// https://tc39.github.io/ecma262/#sec-tointeger
-	var toInteger$1 = function (argument) {
-	  return isNaN(argument = +argument) ? 0 : (argument > 0 ? floor$1 : ceil$1)(argument);
-	};
-
-	var min$2 = Math.min;
-
-	// `ToLength` abstract operation
-	// https://tc39.github.io/ecma262/#sec-tolength
-	var toLength$1 = function (argument) {
-	  return argument > 0 ? min$2(toInteger$1(argument), 0x1FFFFFFFFFFFFF) : 0; // 2 ** 53 - 1 == 9007199254740991
-	};
-
-	var max$2 = Math.max;
-	var min$3 = Math.min;
-
-	// Helper for a popular repeating case of the spec:
-	// Let integer be ? ToInteger(index).
-	// If integer < 0, let result be max((length + integer), 0); else let result be min(integer, length).
-	var toAbsoluteIndex$1 = function (index, length) {
-	  var integer = toInteger$1(index);
-	  return integer < 0 ? max$2(integer + length, 0) : min$3(integer, length);
-	};
-
 	// `Array.prototype.{ indexOf, includes }` methods implementation
 	var createMethod$5 = function (IS_INCLUDES) {
 	  return function ($this, el, fromIndex) {
 	    var O = toIndexedObject($this);
-	    var length = toLength$1(O.length);
-	    var index = toAbsoluteIndex$1(fromIndex, length);
+	    var length = toLength(O.length);
+	    var index = toAbsoluteIndex(fromIndex, length);
 	    var value;
 	    // Array#includes uses SameValueZero equality algorithm
 	    // eslint-disable-next-line no-self-compare
@@ -5901,10 +5966,10 @@
 	  var IS_FIND_INDEX = TYPE == 6;
 	  var NO_HOLES = TYPE == 5 || IS_FIND_INDEX;
 	  return function ($this, callbackfn, that, specificCreate) {
-	    var O = toObject$1($this);
+	    var O = toObject($this);
 	    var self = indexedObject(O);
 	    var boundFunction = bindContext(callbackfn, that, 3);
-	    var length = toLength$1(self.length);
+	    var length = toLength(self.length);
 	    var index = 0;
 	    var create = specificCreate || arraySpeciesCreate$1;
 	    var target = IS_MAP ? create($this, length) : IS_FILTER ? create($this, 0) : undefined;
@@ -6047,8 +6112,8 @@
 	  });
 	};
 
-	var max$3 = Math.max;
-	var min$4 = Math.min;
+	var max$2 = Math.max;
+	var min$3 = Math.min;
 	var MAX_SAFE_INTEGER$1 = 0x1FFFFFFFFFFFFF;
 	var MAXIMUM_ALLOWED_LENGTH_EXCEEDED = 'Maximum allowed length exceeded';
 
@@ -6057,9 +6122,9 @@
 	// with adding support of @@species
 	_export({ target: 'Array', proto: true, forced: !arrayMethodHasSpeciesSupport$1('splice') }, {
 	  splice: function splice(start, deleteCount /* , ...items */) {
-	    var O = toObject$1(this);
-	    var len = toLength$1(O.length);
-	    var actualStart = toAbsoluteIndex$1(start, len);
+	    var O = toObject(this);
+	    var len = toLength(O.length);
+	    var actualStart = toAbsoluteIndex(start, len);
 	    var argumentsLength = arguments.length;
 	    var insertCount, actualDeleteCount, A, k, from, to;
 	    if (argumentsLength === 0) {
@@ -6069,7 +6134,7 @@
 	      actualDeleteCount = len - actualStart;
 	    } else {
 	      insertCount = argumentsLength - 2;
-	      actualDeleteCount = min$4(max$3(toInteger$1(deleteCount), 0), len - actualStart);
+	      actualDeleteCount = min$3(max$2(toInteger(deleteCount), 0), len - actualStart);
 	    }
 	    if (len + insertCount - actualDeleteCount > MAX_SAFE_INTEGER$1) {
 	      throw TypeError(MAXIMUM_ALLOWED_LENGTH_EXCEEDED);
@@ -12115,7 +12180,7 @@
 	var createMethod$7 = function (CONVERT_TO_STRING) {
 	  return function ($this, pos) {
 	    var S = String(requireObjectCoercible($this));
-	    var position = toInteger$1(pos);
+	    var position = toInteger(pos);
 	    var size = S.length;
 	    var first, second;
 	    if (position < 0 || position >= size) return CONVERT_TO_STRING ? '' : undefined;
@@ -12593,21 +12658,21 @@
 	  return isNaN(argument = +argument) ? 0 : (argument > 0 ? floor$2 : ceil$2)(argument);
 	};
 
-	var min$5 = Math.min; // `ToLength` abstract operation
+	var min$4 = Math.min; // `ToLength` abstract operation
 	// https://tc39.github.io/ecma262/#sec-tolength
 
 	var toLength$2 = function (argument) {
-	  return argument > 0 ? min$5(toInteger$2(argument), 0x1FFFFFFFFFFFFF) : 0; // 2 ** 53 - 1 == 9007199254740991
+	  return argument > 0 ? min$4(toInteger$2(argument), 0x1FFFFFFFFFFFFF) : 0; // 2 ** 53 - 1 == 9007199254740991
 	};
 
-	var max$4 = Math.max;
-	var min$1$1 = Math.min; // Helper for a popular repeating case of the spec:
+	var max$3 = Math.max;
+	var min$1$2 = Math.min; // Helper for a popular repeating case of the spec:
 	// Let integer be ? ToInteger(index).
 	// If integer < 0, let result be max((length + integer), 0); else let result be min(length, length).
 
 	var toAbsoluteIndex$2 = function (index, length) {
 	  var integer = toInteger$2(index);
-	  return integer < 0 ? max$4(integer + length, 0) : min$1$1(integer, length);
+	  return integer < 0 ? max$3(integer + length, 0) : min$1$2(integer, length);
 	};
 
 	var createMethod$8 = function (IS_INCLUDES) {
@@ -13841,7 +13906,7 @@
 
 	var entries$1 = entries;
 
-	var ArrayPrototype$1$1 = Array.prototype;
+	var ArrayPrototype$1$2 = Array.prototype;
 	var DOMIterables$1$1 = {
 	  DOMTokenList: true,
 	  NodeList: true
@@ -13849,7 +13914,7 @@
 
 	var entries_1 = function (it) {
 	  var own = it.entries;
-	  return it === ArrayPrototype$1$1 || it instanceof Array && own === ArrayPrototype$1$1.entries // eslint-disable-next-line no-prototype-builtins
+	  return it === ArrayPrototype$1$2 || it instanceof Array && own === ArrayPrototype$1$2.entries // eslint-disable-next-line no-prototype-builtins
 	  || DOMIterables$1$1.hasOwnProperty(classof$2(it)) ? entries$1 : own;
 	};
 
@@ -16523,14 +16588,14 @@
 	  return argument > 0 ? min$2$1(toInteger$1$1(argument), 0x1FFFFFFFFFFFFF) : 0; // 2 ** 53 - 1 == 9007199254740991
 	};
 
-	var max$1$1 = Math.max;
+	var max$1$2 = Math.max;
 	var min$1$1$1 = Math.min; // Helper for a popular repeating case of the spec:
 	// Let integer be ? ToInteger(index).
 	// If integer < 0, let result be max((length + integer), 0); else let result be min(length, length).
 
 	var toAbsoluteIndex$1$1 = function (index, length) {
 	  var integer = toInteger$1$1(index);
-	  return integer < 0 ? max$1$1(integer + length, 0) : min$1$1$1(integer, length);
+	  return integer < 0 ? max$1$2(integer + length, 0) : min$1$1$1(integer, length);
 	}; // `Array.prototype.{ indexOf, includes }` methods implementation
 
 
@@ -27070,7 +27135,7 @@
 	// https://bugs.chromium.org/p/v8/issues/detail?id=3443
 	_export({ target: 'Object', stat: true, forced: fails(function () { objectGetOwnPropertySymbols$2.f(1); }) }, {
 	  getOwnPropertySymbols: function getOwnPropertySymbols(it) {
-	    return objectGetOwnPropertySymbols$2.f(toObject$1(it));
+	    return objectGetOwnPropertySymbols$2.f(toObject(it));
 	  }
 	});
 
@@ -27129,7 +27194,7 @@
 	// https://tc39.github.io/ecma262/#sec-object.keys
 	_export({ target: 'Object', stat: true, forced: FAILS_ON_PRIMITIVES$6 }, {
 	  keys: function keys(it) {
-	    return objectKeys$1(toObject$1(it));
+	    return objectKeys$1(toObject(it));
 	  }
 	});
 
@@ -27344,14 +27409,14 @@
 	// with adding support of @@isConcatSpreadable and @@species
 	_export({ target: 'Array', proto: true, forced: FORCED$8 }, {
 	  concat: function concat(arg) { // eslint-disable-line no-unused-vars
-	    var O = toObject$1(this);
+	    var O = toObject(this);
 	    var A = arraySpeciesCreate$1(O, 0);
 	    var n = 0;
 	    var i, k, length, len, E;
 	    for (i = -1, length = arguments.length; i < length; i++) {
 	      E = i === -1 ? O : arguments[i];
 	      if (isConcatSpreadable$2(E)) {
-	        len = toLength$1(E.length);
+	        len = toLength(E.length);
 	        if (n + len > MAX_SAFE_INTEGER$3) throw TypeError(MAXIMUM_ALLOWED_INDEX_EXCEEDED$2);
 	        for (k = 0; k < len; k++, n++) if (k in E) createProperty$1(A, n, E[k]);
 	      } else {
@@ -27592,7 +27657,7 @@
 
 	var SPECIES$6 = wellKnownSymbol$1('species');
 	var nativeSlice$2 = [].slice;
-	var max$5 = Math.max;
+	var max$4 = Math.max;
 
 	// `Array.prototype.slice` method
 	// https://tc39.github.io/ecma262/#sec-array.prototype.slice
@@ -27600,9 +27665,9 @@
 	_export({ target: 'Array', proto: true, forced: !arrayMethodHasSpeciesSupport$1('slice') }, {
 	  slice: function slice(start, end) {
 	    var O = toIndexedObject(this);
-	    var length = toLength$1(O.length);
-	    var k = toAbsoluteIndex$1(start, length);
-	    var fin = toAbsoluteIndex$1(end === undefined ? length : end, length);
+	    var length = toLength(O.length);
+	    var k = toAbsoluteIndex(start, length);
+	    var fin = toAbsoluteIndex(end === undefined ? length : end, length);
 	    // inline `ArraySpeciesCreate` for usage native `Array#slice` where it's possible
 	    var Constructor, result, n;
 	    if (isArray$6(O)) {
@@ -27618,7 +27683,7 @@
 	        return nativeSlice$2.call(O, k, fin);
 	      }
 	    }
-	    result = new (Constructor === undefined ? Array : Constructor)(max$5(fin - k, 0));
+	    result = new (Constructor === undefined ? Array : Constructor)(max$4(fin - k, 0));
 	    for (n = 0; k < fin; k++, n++) if (k in O) createProperty$1(result, n, O[k]);
 	    result.length = n;
 	    return result;
@@ -27684,7 +27749,7 @@
 	  alphabet.split('').forEach(function (chr) { B[chr] = chr; });
 	  return nativeAssign$2({}, A)[symbol] != 7 || objectKeys$1(nativeAssign$2({}, B)).join('') != alphabet;
 	}) ? function assign(target, source) { // eslint-disable-line no-unused-vars
-	  var T = toObject$1(target);
+	  var T = toObject(target);
 	  var argumentsLength = arguments.length;
 	  var index = 1;
 	  var getOwnPropertySymbols = objectGetOwnPropertySymbols$2.f;
@@ -29550,7 +29615,7 @@
 	// https://tc39.github.io/ecma262/#sec-object.getprototypeof
 	_export({ target: 'Object', stat: true, forced: FAILS_ON_PRIMITIVES$7, sham: !correctPrototypeGetter$1 }, {
 	  getPrototypeOf: function getPrototypeOf(it) {
-	    return objectGetPrototypeOf$1(toObject$1(it));
+	    return objectGetPrototypeOf$1(toObject(it));
 	  }
 	});
 
@@ -29616,38 +29681,6 @@
 	}
 
 	var inherits$1 = _inherits$1;
-
-	// `Array.prototype.fill` method implementation
-	// https://tc39.github.io/ecma262/#sec-array.prototype.fill
-	var arrayFill = function fill(value /* , start = 0, end = @length */) {
-	  var O = toObject$1(this);
-	  var length = toLength$1(O.length);
-	  var argumentsLength = arguments.length;
-	  var index = toAbsoluteIndex$1(argumentsLength > 1 ? arguments[1] : undefined, length);
-	  var end = argumentsLength > 2 ? arguments[2] : undefined;
-	  var endPos = end === undefined ? length : toAbsoluteIndex$1(end, length);
-	  while (endPos > index) O[index++] = value;
-	  return O;
-	};
-
-	// `Array.prototype.fill` method
-	// https://tc39.github.io/ecma262/#sec-array.prototype.fill
-	_export({ target: 'Array', proto: true }, {
-	  fill: arrayFill
-	});
-
-	var fill = entryVirtual('Array').fill;
-
-	var ArrayPrototype$h = Array.prototype;
-
-	var fill_1 = function (it) {
-	  var own = it.fill;
-	  return it === ArrayPrototype$h || (it instanceof Array && own === ArrayPrototype$h.fill) ? fill : own;
-	};
-
-	var fill$1 = fill_1;
-
-	var fill$2 = fill$1;
 
 	/**
 	 * The Base class for all Nodes.
@@ -31611,6 +31644,74 @@
 	  return TriangleDown;
 	}(ShapeBase);
 
+	/**
+	 * A downward facing CircleAroundCircle Node/Cluster shape.
+	 *
+	 * @extends ShapeBase
+	 */
+
+	var CircleAroundCircle =
+	/*#__PURE__*/
+	function (_ShapeBase) {
+	  inherits$1(CircleAroundCircle, _ShapeBase);
+
+	  /**
+	   * @param {Object} options
+	   * @param {Object} body
+	   * @param {Label} labelModule
+	   */
+	  function CircleAroundCircle(options, body, labelModule) {
+	    classCallCheck(this, CircleAroundCircle);
+
+	    return possibleConstructorReturn$1(this, getPrototypeOf$8(CircleAroundCircle).call(this, options, body, labelModule));
+	  }
+	  /**
+	   *
+	   * @param {CanvasRenderingContext2D} ctx
+	   * @param {number} x
+	   * @param {number} y
+	   * @param {boolean} selected
+	   * @param {boolean} hover
+	   * @param {{toArrow: boolean, toArrowScale: (allOptions.edges.arrows.to.scaleFactor|{number}|allOptions.edges.arrows.middle.scaleFactor|allOptions.edges.arrows.from.scaleFactor|Array|number), toArrowType: *, middleArrow: boolean, middleArrowScale: (number|allOptions.edges.arrows.middle.scaleFactor|{number}|Array), middleArrowType: (allOptions.edges.arrows.middle.type|{string}|string|*), fromArrow: boolean, fromArrowScale: (allOptions.edges.arrows.to.scaleFactor|{number}|allOptions.edges.arrows.middle.scaleFactor|allOptions.edges.arrows.from.scaleFactor|Array|number), fromArrowType: *, arrowStrikethrough: (*|boolean|allOptions.edges.arrowStrikethrough|{boolean}), color: undefined, inheritsColor: (string|string|string|allOptions.edges.color.inherit|{string, boolean}|Array|*), opacity: *, hidden: *, length: *, shadow: *, shadowColor: *, shadowSize: *, shadowX: *, shadowY: *, dashes: (*|boolean|Array|allOptions.edges.dashes|{boolean, array}), width: *}} values
+	   */
+
+
+	  createClass(CircleAroundCircle, [{
+	    key: "draw",
+	    value: function draw(ctx, x, y, selected, hover, values) {
+	      this.resize(ctx, selected, hover, values);
+	      this.left = x - this.width / 2;
+	      this.top = y - this.height / 2;
+	      this.initContextForDraw(ctx, values);
+	      ctx.circleAroundCircle(x, y, values.size, values.color);
+	      this.performFill(ctx, values);
+
+	      if (this.options.label !== undefined) {
+	        // Need to call following here in order to ensure value for `this.labelModule.size.height`
+	        this.labelModule.calculateLabelSize(ctx, selected, hover, x, y, 'hanging');
+	        var yLabel = y + 0.5 * this.height + 0.5 * this.labelModule.size.height;
+	        this.labelModule.draw(ctx, x, yLabel, selected, hover, 'hanging');
+	      }
+
+	      this.updateBoundingBox(x, y);
+	    }
+	    /**
+	     *
+	     * @param {CanvasRenderingContext2D} ctx
+	     * @param {number} angle
+	     * @returns {number}
+	     */
+
+	  }, {
+	    key: "distanceToBorder",
+	    value: function distanceToBorder(ctx, angle) {
+	      return this._distanceToBorder(ctx, angle);
+	    }
+	  }]);
+
+	  return CircleAroundCircle;
+	}(ShapeBase);
+
 	var $stringify$4 = getBuiltIn$1('JSON', 'stringify');
 	var re$1 = /[\uD800-\uDFFF]/g;
 	var low$1 = /^[\uD800-\uDBFF]$/;
@@ -32413,6 +32514,10 @@
 
 	          case 'triangleDown':
 	            this.shape = new TriangleDown(this.options, this.body, this.labelModule);
+	            break;
+
+	          case 'circleAroundCircle':
+	            this.shape = new CircleAroundCircle(this.options, this.body, this.labelModule);
 	            break;
 
 	          default:
@@ -39266,11 +39371,11 @@
 
 	var reverse = entryVirtual('Array').reverse;
 
-	var ArrayPrototype$i = Array.prototype;
+	var ArrayPrototype$h = Array.prototype;
 
 	var reverse_1 = function (it) {
 	  var own = it.reverse;
-	  return it === ArrayPrototype$i || (it instanceof Array && own === ArrayPrototype$i.reverse) ? reverse : own;
+	  return it === ArrayPrototype$h || (it instanceof Array && own === ArrayPrototype$h.reverse) ? reverse : own;
 	};
 
 	var reverse$1 = reverse_1;
@@ -45010,11 +45115,11 @@
 	var internalMetadata_4$1 = internalMetadata$1.onFreeze;
 
 	var ITERATOR$b = wellKnownSymbol$1('iterator');
-	var ArrayPrototype$j = Array.prototype;
+	var ArrayPrototype$i = Array.prototype;
 
 	// check on default Array iterator
 	var isArrayIteratorMethod$2 = function (it) {
-	  return it !== undefined && (iterators$1.Array === it || ArrayPrototype$j[ITERATOR$b] === it);
+	  return it !== undefined && (iterators$1.Array === it || ArrayPrototype$i[ITERATOR$b] === it);
 	};
 
 	// call something on iterator step with safe closing on error
@@ -45046,7 +45151,7 @@
 	    if (typeof iterFn != 'function') throw TypeError('Target is not iterable');
 	    // optimisation for array iterators
 	    if (isArrayIteratorMethod$2(iterFn)) {
-	      for (index = 0, length = toLength$1(iterable.length); length > index; index++) {
+	      for (index = 0, length = toLength(iterable.length); length > index; index++) {
 	        result = AS_ENTRIES
 	          ? boundFunction(anObject(step = iterable[index])[0], step[1])
 	          : boundFunction(iterable[index]);
@@ -45361,9 +45466,9 @@
 	var createMethod$a = function (IS_RIGHT) {
 	  return function (that, callbackfn, argumentsLength, memo) {
 	    aFunction(callbackfn);
-	    var O = toObject$1(that);
+	    var O = toObject(that);
 	    var self = indexedObject(O);
-	    var length = toLength$1(O.length);
+	    var length = toLength(O.length);
 	    var index = IS_RIGHT ? length - 1 : 0;
 	    var i = IS_RIGHT ? -1 : 1;
 	    if (argumentsLength < 2) while (true) {
@@ -45406,11 +45511,11 @@
 
 	var reduce$3 = entryVirtual('Array').reduce;
 
-	var ArrayPrototype$k = Array.prototype;
+	var ArrayPrototype$j = Array.prototype;
 
 	var reduce_1$1 = function (it) {
 	  var own = it.reduce;
-	  return it === ArrayPrototype$k || (it instanceof Array && own === ArrayPrototype$k.reduce) ? reduce$3 : own;
+	  return it === ArrayPrototype$j || (it instanceof Array && own === ArrayPrototype$j.reduce) ? reduce$3 : own;
 	};
 
 	var reduce$4 = reduce_1$1;
@@ -45438,18 +45543,18 @@
 	_export({ target: 'Array', proto: true, forced: FORCED$a }, {
 	  sort: function sort(comparefn) {
 	    return comparefn === undefined
-	      ? nativeSort$2.call(toObject$1(this))
-	      : nativeSort$2.call(toObject$1(this), aFunction(comparefn));
+	      ? nativeSort$2.call(toObject(this))
+	      : nativeSort$2.call(toObject(this), aFunction(comparefn));
 	  }
 	});
 
 	var sort$4 = entryVirtual('Array').sort;
 
-	var ArrayPrototype$l = Array.prototype;
+	var ArrayPrototype$k = Array.prototype;
 
 	var sort_1$2 = function (it) {
 	  var own = it.sort;
-	  return it === ArrayPrototype$l || (it instanceof Array && own === ArrayPrototype$l.sort) ? sort$4 : own;
+	  return it === ArrayPrototype$k || (it instanceof Array && own === ArrayPrototype$k.sort) ? sort$4 : own;
 	};
 
 	var sort$5 = sort_1$2;
@@ -46632,11 +46737,11 @@
 
 	var every = entryVirtual('Array').every;
 
-	var ArrayPrototype$m = Array.prototype;
+	var ArrayPrototype$l = Array.prototype;
 
 	var every_1 = function (it) {
 	  var own = it.every;
-	  return it === ArrayPrototype$m || (it instanceof Array && own === ArrayPrototype$m.every) ? every : own;
+	  return it === ArrayPrototype$l || (it instanceof Array && own === ArrayPrototype$l.every) ? every : own;
 	};
 
 	var every$1 = every_1;
@@ -52995,7 +53100,7 @@
 	      }
 	    },
 	    shape: {
-	      string: ['ellipse', 'circle', 'database', 'box', 'text', 'image', 'circularImage', 'diamond', 'dot', 'star', 'triangle', 'triangleDown', 'square', 'icon', 'hexagon']
+	      string: ['ellipse', 'circle', 'database', 'box', 'text', 'image', 'circularImage', 'diamond', 'dot', 'star', 'triangle', 'triangleDown', 'circleAroundCircle', 'square', 'icon', 'hexagon']
 	    },
 	    shapeProperties: {
 	      borderDashes: {
@@ -53278,7 +53383,7 @@
 	      x: [5, -30, 30, 1],
 	      y: [5, -30, 30, 1]
 	    },
-	    shape: ['ellipse', 'box', 'circle', 'database', 'diamond', 'dot', 'square', 'star', 'text', 'triangle', 'triangleDown', 'hexagon'],
+	    shape: ['ellipse', 'box', 'circle', 'database', 'diamond', 'dot', 'square', 'star', 'text', 'triangle', 'triangleDown', 'circleAroundCircle', 'hexagon'],
 	    shapeProperties: {
 	      borderDashes: false,
 	      borderRadius: [6, 0, 20, 1],

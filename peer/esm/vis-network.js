@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 0.0.0-no-version
- * @date    2019-12-12T18:16:24Z
+ * @date    2019-12-13T09:01:45Z
  *
  * @copyright (c) 2011-2017 Almende B.V, http://almende.com
  * @copyright (c) 2018-2019 visjs contributors, https://github.com/visjs
@@ -409,6 +409,72 @@ var bind$1 = bind_1;
 
 var bind$2 = bind$1;
 
+// `ToObject` abstract operation
+// https://tc39.github.io/ecma262/#sec-toobject
+var toObject = function (argument) {
+  return Object(requireObjectCoercible(argument));
+};
+
+var ceil = Math.ceil;
+var floor = Math.floor;
+
+// `ToInteger` abstract operation
+// https://tc39.github.io/ecma262/#sec-tointeger
+var toInteger = function (argument) {
+  return isNaN(argument = +argument) ? 0 : (argument > 0 ? floor : ceil)(argument);
+};
+
+var max = Math.max;
+var min = Math.min;
+
+// Helper for a popular repeating case of the spec:
+// Let integer be ? ToInteger(index).
+// If integer < 0, let result be max((length + integer), 0); else let result be min(integer, length).
+var toAbsoluteIndex = function (index, length) {
+  var integer = toInteger(index);
+  return integer < 0 ? max(integer + length, 0) : min(integer, length);
+};
+
+var min$1 = Math.min;
+
+// `ToLength` abstract operation
+// https://tc39.github.io/ecma262/#sec-tolength
+var toLength = function (argument) {
+  return argument > 0 ? min$1(toInteger(argument), 0x1FFFFFFFFFFFFF) : 0; // 2 ** 53 - 1 == 9007199254740991
+};
+
+// `Array.prototype.fill` method implementation
+// https://tc39.github.io/ecma262/#sec-array.prototype.fill
+var arrayFill = function fill(value /* , start = 0, end = @length */) {
+  var O = toObject(this);
+  var length = toLength(O.length);
+  var argumentsLength = arguments.length;
+  var index = toAbsoluteIndex(argumentsLength > 1 ? arguments[1] : undefined, length);
+  var end = argumentsLength > 2 ? arguments[2] : undefined;
+  var endPos = end === undefined ? length : toAbsoluteIndex(end, length);
+  while (endPos > index) O[index++] = value;
+  return O;
+};
+
+// `Array.prototype.fill` method
+// https://tc39.github.io/ecma262/#sec-array.prototype.fill
+_export({ target: 'Array', proto: true }, {
+  fill: arrayFill
+});
+
+var fill = entryVirtual('Array').fill;
+
+var ArrayPrototype = Array.prototype;
+
+var fill_1 = function (it) {
+  var own = it.fill;
+  return it === ArrayPrototype || (it instanceof Array && own === ArrayPrototype.fill) ? fill : own;
+};
+
+var fill$1 = fill_1;
+
+var fill$2 = fill$1;
+
 /**
  * Draw a circle.
  *
@@ -492,6 +558,38 @@ function drawTriangleDown(ctx, x, y, r) {
   ctx.lineTo(x + s2, y - ir);
   ctx.lineTo(x - s2, y - ir);
   ctx.lineTo(x, y + (h - ir));
+  ctx.closePath();
+}
+/**
+ * Draw a circleAroundCircle shape in downward orientation
+ * @param {number} x horizontal center
+ * @param {number} y vertical center
+ * @param {number} r radius
+ * @param {string} color color
+ */
+// eslint-disable-next-line require-jsdoc
+
+function drawCircleAroundCircle(ctx, x, y, r, color) {
+  ctx.beginPath();
+  ctx.fillStyle = color;
+  ctx.arc(x, y, r + 11, 0, 2 * Math.PI, false);
+
+  fill$2(ctx).call(ctx);
+
+  ctx.closePath();
+  ctx.beginPath();
+  ctx.fillStyle = "#fff";
+  ctx.arc(x, y, r + 9, 0, 2 * Math.PI, false);
+
+  fill$2(ctx).call(ctx);
+
+  ctx.closePath();
+  ctx.beginPath();
+  ctx.fillStyle = color;
+  ctx.arc(x, y, r, 0, 2 * Math.PI, false);
+
+  fill$2(ctx).call(ctx);
+
   ctx.closePath();
 }
 /**
@@ -742,7 +840,8 @@ var shapeMap = {
   square: drawSquare,
   star: drawStar,
   triangle: drawTriangle,
-  triangleDown: drawTriangleDown
+  triangleDown: drawTriangleDown,
+  CircleAroundCircle: drawCircleAroundCircle
 };
 /**
  * Returns either custom or native drawing function base on supplied name.
@@ -1050,12 +1149,6 @@ var internalState = {
   getterFor: getterFor
 };
 
-// `ToObject` abstract operation
-// https://tc39.github.io/ecma262/#sec-toobject
-var toObject = function (argument) {
-  return Object(requireObjectCoercible(argument));
-};
-
 var correctPrototypeGetter = !fails(function () {
   function F() { /* empty */ }
   F.prototype.constructor = null;
@@ -1120,34 +1213,6 @@ if (IteratorPrototype == undefined) IteratorPrototype = {};
 var iteratorsCore = {
   IteratorPrototype: IteratorPrototype,
   BUGGY_SAFARI_ITERATORS: BUGGY_SAFARI_ITERATORS
-};
-
-var ceil = Math.ceil;
-var floor = Math.floor;
-
-// `ToInteger` abstract operation
-// https://tc39.github.io/ecma262/#sec-tointeger
-var toInteger = function (argument) {
-  return isNaN(argument = +argument) ? 0 : (argument > 0 ? floor : ceil)(argument);
-};
-
-var min = Math.min;
-
-// `ToLength` abstract operation
-// https://tc39.github.io/ecma262/#sec-tolength
-var toLength = function (argument) {
-  return argument > 0 ? min(toInteger(argument), 0x1FFFFFFFFFFFFF) : 0; // 2 ** 53 - 1 == 9007199254740991
-};
-
-var max = Math.max;
-var min$1 = Math.min;
-
-// Helper for a popular repeating case of the spec:
-// Let integer be ? ToInteger(index).
-// If integer < 0, let result be max((length + integer), 0); else let result be min(integer, length).
-var toAbsoluteIndex = function (index, length) {
-  var integer = toInteger(index);
-  return integer < 0 ? max(integer + length, 0) : min$1(integer, length);
 };
 
 // `Array.prototype.{ indexOf, includes }` methods implementation
@@ -1653,7 +1718,7 @@ var forEach = entryVirtual('Array').forEach;
 
 var forEach$1 = forEach;
 
-var ArrayPrototype = Array.prototype;
+var ArrayPrototype$1 = Array.prototype;
 
 var DOMIterables = {
   DOMTokenList: true,
@@ -1662,7 +1727,7 @@ var DOMIterables = {
 
 var forEach_1 = function (it) {
   var own = it.forEach;
-  return it === ArrayPrototype || (it instanceof Array && own === ArrayPrototype.forEach)
+  return it === ArrayPrototype$1 || (it instanceof Array && own === ArrayPrototype$1.forEach)
     // eslint-disable-next-line no-prototype-builtins
     || DOMIterables.hasOwnProperty(classof(it)) ? forEach$1 : own;
 };
@@ -1782,11 +1847,11 @@ _export({ target: 'Array', proto: true, forced: !arrayMethodHasSpeciesSupport('s
 
 var splice = entryVirtual('Array').splice;
 
-var ArrayPrototype$1 = Array.prototype;
+var ArrayPrototype$2 = Array.prototype;
 
 var splice_1 = function (it) {
   var own = it.splice;
-  return it === ArrayPrototype$1 || (it instanceof Array && own === ArrayPrototype$1.splice) ? splice : own;
+  return it === ArrayPrototype$2 || (it instanceof Array && own === ArrayPrototype$2.splice) ? splice : own;
 };
 
 var splice$1 = splice_1;
@@ -1846,12 +1911,12 @@ _export({ target: 'String', proto: true, forced: !correctIsRegexpLogic('includes
 
 var includes$1 = entryVirtual('String').includes;
 
-var ArrayPrototype$2 = Array.prototype;
+var ArrayPrototype$3 = Array.prototype;
 var StringPrototype = String.prototype;
 
 var includes$2 = function (it) {
   var own = it.includes;
-  if (it === ArrayPrototype$2 || (it instanceof Array && own === ArrayPrototype$2.includes)) return includes;
+  if (it === ArrayPrototype$3 || (it instanceof Array && own === ArrayPrototype$3.includes)) return includes;
   if (typeof it === 'string' || it === StringPrototype || (it instanceof String && own === StringPrototype.includes)) {
     return includes$1;
   } return own;
@@ -1882,11 +1947,11 @@ _export({ target: 'Array', proto: true, forced: NEGATIVE_ZERO || SLOPPY_METHOD }
 
 var indexOf$1 = entryVirtual('Array').indexOf;
 
-var ArrayPrototype$3 = Array.prototype;
+var ArrayPrototype$4 = Array.prototype;
 
 var indexOf_1 = function (it) {
   var own = it.indexOf;
-  return it === ArrayPrototype$3 || (it instanceof Array && own === ArrayPrototype$3.indexOf) ? indexOf$1 : own;
+  return it === ArrayPrototype$4 || (it instanceof Array && own === ArrayPrototype$4.indexOf) ? indexOf$1 : own;
 };
 
 var indexOf$2 = indexOf_1;
@@ -3343,11 +3408,11 @@ _export({ target: 'Array', proto: true, forced: !HAS_SPECIES_SUPPORT || !USES_TO
 
 var map = entryVirtual('Array').map;
 
-var ArrayPrototype$4 = Array.prototype;
+var ArrayPrototype$5 = Array.prototype;
 
 var map_1 = function (it) {
   var own = it.map;
-  return it === ArrayPrototype$4 || (it instanceof Array && own === ArrayPrototype$4.map) ? map : own;
+  return it === ArrayPrototype$5 || (it instanceof Array && own === ArrayPrototype$5.map) ? map : own;
 };
 
 var map$1 = map_1;
@@ -7718,11 +7783,11 @@ _export({ target: 'Array', proto: true, forced: sloppyArrayMethod('some') }, {
 
 var some = entryVirtual('Array').some;
 
-var ArrayPrototype$5 = Array.prototype;
+var ArrayPrototype$6 = Array.prototype;
 
 var some_1 = function (it) {
   var own = it.some;
-  return it === ArrayPrototype$5 || (it instanceof Array && own === ArrayPrototype$5.some) ? some : own;
+  return it === ArrayPrototype$6 || (it instanceof Array && own === ArrayPrototype$6.some) ? some : own;
 };
 
 var some$1 = some_1;
@@ -7851,11 +7916,11 @@ _export({ target: 'Array', proto: true, forced: !HAS_SPECIES_SUPPORT$1 || !USES_
 
 var filter = entryVirtual('Array').filter;
 
-var ArrayPrototype$6 = Array.prototype;
+var ArrayPrototype$7 = Array.prototype;
 
 var filter_1 = function (it) {
   var own = it.filter;
-  return it === ArrayPrototype$6 || (it instanceof Array && own === ArrayPrototype$6.filter) ? filter : own;
+  return it === ArrayPrototype$7 || (it instanceof Array && own === ArrayPrototype$7.filter) ? filter : own;
 };
 
 var filter$1 = filter_1;
@@ -8700,11 +8765,11 @@ _export({ target: 'Array', proto: true, forced: !arrayMethodHasSpeciesSupport('s
 
 var slice$2 = entryVirtual('Array').slice;
 
-var ArrayPrototype$7 = Array.prototype;
+var ArrayPrototype$8 = Array.prototype;
 
 var slice_1 = function (it) {
   var own = it.slice;
-  return it === ArrayPrototype$7 || (it instanceof Array && own === ArrayPrototype$7.slice) ? slice$2 : own;
+  return it === ArrayPrototype$8 || (it instanceof Array && own === ArrayPrototype$8.slice) ? slice$2 : own;
 };
 
 var slice$3 = slice_1;
@@ -8715,7 +8780,7 @@ var values = entryVirtual('Array').values;
 
 var values$1 = values;
 
-var ArrayPrototype$8 = Array.prototype;
+var ArrayPrototype$9 = Array.prototype;
 
 var DOMIterables$1 = {
   DOMTokenList: true,
@@ -8724,7 +8789,7 @@ var DOMIterables$1 = {
 
 var values_1 = function (it) {
   var own = it.values;
-  return it === ArrayPrototype$8 || (it instanceof Array && own === ArrayPrototype$8.values)
+  return it === ArrayPrototype$9 || (it instanceof Array && own === ArrayPrototype$9.values)
     // eslint-disable-next-line no-prototype-builtins
     || DOMIterables$1.hasOwnProperty(classof(it)) ? values$1 : own;
 };
@@ -10690,38 +10755,6 @@ function _inherits(subClass, superClass) {
 
 var inherits = _inherits;
 
-// `Array.prototype.fill` method implementation
-// https://tc39.github.io/ecma262/#sec-array.prototype.fill
-var arrayFill = function fill(value /* , start = 0, end = @length */) {
-  var O = toObject(this);
-  var length = toLength(O.length);
-  var argumentsLength = arguments.length;
-  var index = toAbsoluteIndex(argumentsLength > 1 ? arguments[1] : undefined, length);
-  var end = argumentsLength > 2 ? arguments[2] : undefined;
-  var endPos = end === undefined ? length : toAbsoluteIndex(end, length);
-  while (endPos > index) O[index++] = value;
-  return O;
-};
-
-// `Array.prototype.fill` method
-// https://tc39.github.io/ecma262/#sec-array.prototype.fill
-_export({ target: 'Array', proto: true }, {
-  fill: arrayFill
-});
-
-var fill = entryVirtual('Array').fill;
-
-var ArrayPrototype$9 = Array.prototype;
-
-var fill_1 = function (it) {
-  var own = it.fill;
-  return it === ArrayPrototype$9 || (it instanceof Array && own === ArrayPrototype$9.fill) ? fill : own;
-};
-
-var fill$1 = fill_1;
-
-var fill$2 = fill$1;
-
 /**
  * The Base class for all Nodes.
  */
@@ -12684,6 +12717,74 @@ function (_ShapeBase) {
   return TriangleDown;
 }(ShapeBase);
 
+/**
+ * A downward facing CircleAroundCircle Node/Cluster shape.
+ *
+ * @extends ShapeBase
+ */
+
+var CircleAroundCircle =
+/*#__PURE__*/
+function (_ShapeBase) {
+  inherits(CircleAroundCircle, _ShapeBase);
+
+  /**
+   * @param {Object} options
+   * @param {Object} body
+   * @param {Label} labelModule
+   */
+  function CircleAroundCircle(options, body, labelModule) {
+    classCallCheck(this, CircleAroundCircle);
+
+    return possibleConstructorReturn(this, getPrototypeOf$3(CircleAroundCircle).call(this, options, body, labelModule));
+  }
+  /**
+   *
+   * @param {CanvasRenderingContext2D} ctx
+   * @param {number} x
+   * @param {number} y
+   * @param {boolean} selected
+   * @param {boolean} hover
+   * @param {{toArrow: boolean, toArrowScale: (allOptions.edges.arrows.to.scaleFactor|{number}|allOptions.edges.arrows.middle.scaleFactor|allOptions.edges.arrows.from.scaleFactor|Array|number), toArrowType: *, middleArrow: boolean, middleArrowScale: (number|allOptions.edges.arrows.middle.scaleFactor|{number}|Array), middleArrowType: (allOptions.edges.arrows.middle.type|{string}|string|*), fromArrow: boolean, fromArrowScale: (allOptions.edges.arrows.to.scaleFactor|{number}|allOptions.edges.arrows.middle.scaleFactor|allOptions.edges.arrows.from.scaleFactor|Array|number), fromArrowType: *, arrowStrikethrough: (*|boolean|allOptions.edges.arrowStrikethrough|{boolean}), color: undefined, inheritsColor: (string|string|string|allOptions.edges.color.inherit|{string, boolean}|Array|*), opacity: *, hidden: *, length: *, shadow: *, shadowColor: *, shadowSize: *, shadowX: *, shadowY: *, dashes: (*|boolean|Array|allOptions.edges.dashes|{boolean, array}), width: *}} values
+   */
+
+
+  createClass(CircleAroundCircle, [{
+    key: "draw",
+    value: function draw(ctx, x, y, selected, hover, values) {
+      this.resize(ctx, selected, hover, values);
+      this.left = x - this.width / 2;
+      this.top = y - this.height / 2;
+      this.initContextForDraw(ctx, values);
+      ctx.circleAroundCircle(x, y, values.size, values.color);
+      this.performFill(ctx, values);
+
+      if (this.options.label !== undefined) {
+        // Need to call following here in order to ensure value for `this.labelModule.size.height`
+        this.labelModule.calculateLabelSize(ctx, selected, hover, x, y, 'hanging');
+        var yLabel = y + 0.5 * this.height + 0.5 * this.labelModule.size.height;
+        this.labelModule.draw(ctx, x, yLabel, selected, hover, 'hanging');
+      }
+
+      this.updateBoundingBox(x, y);
+    }
+    /**
+     *
+     * @param {CanvasRenderingContext2D} ctx
+     * @param {number} angle
+     * @returns {number}
+     */
+
+  }, {
+    key: "distanceToBorder",
+    value: function distanceToBorder(ctx, angle) {
+      return this._distanceToBorder(ctx, angle);
+    }
+  }]);
+
+  return CircleAroundCircle;
+}(ShapeBase);
+
 var $stringify$1 = getBuiltIn('JSON', 'stringify');
 var re = /[\uD800-\uDFFF]/g;
 var low = /^[\uD800-\uDBFF]$/;
@@ -13486,6 +13587,10 @@ function () {
 
           case 'triangleDown':
             this.shape = new TriangleDown(this.options, this.body, this.labelModule);
+            break;
+
+          case 'circleAroundCircle':
+            this.shape = new CircleAroundCircle(this.options, this.body, this.labelModule);
             break;
 
           default:
@@ -34053,7 +34158,7 @@ var allOptions$1 = {
       }
     },
     shape: {
-      string: ['ellipse', 'circle', 'database', 'box', 'text', 'image', 'circularImage', 'diamond', 'dot', 'star', 'triangle', 'triangleDown', 'square', 'icon', 'hexagon']
+      string: ['ellipse', 'circle', 'database', 'box', 'text', 'image', 'circularImage', 'diamond', 'dot', 'star', 'triangle', 'triangleDown', 'circleAroundCircle', 'square', 'icon', 'hexagon']
     },
     shapeProperties: {
       borderDashes: {
@@ -34336,7 +34441,7 @@ var configureOptions = {
       x: [5, -30, 30, 1],
       y: [5, -30, 30, 1]
     },
-    shape: ['ellipse', 'box', 'circle', 'database', 'diamond', 'dot', 'square', 'star', 'text', 'triangle', 'triangleDown', 'hexagon'],
+    shape: ['ellipse', 'box', 'circle', 'database', 'diamond', 'dot', 'square', 'star', 'text', 'triangle', 'triangleDown', 'circleAroundCircle', 'hexagon'],
     shapeProperties: {
       borderDashes: false,
       borderRadius: [6, 0, 20, 1],
