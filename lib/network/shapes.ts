@@ -114,7 +114,6 @@ export function drawTriangleDown(
  * @param {string} color color
  */
 
-// eslint-disable-next-line require-jsdoc
 export function drawCircleAroundCircle(
   ctx: CanvasRenderingContext2D,
   x: number,

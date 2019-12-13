@@ -17,6 +17,8 @@ import Star from "../lib/network/modules/components/nodes/shapes/Star";
 import Text from "../lib/network/modules/components/nodes/shapes/Text";
 import Triangle from "../lib/network/modules/components/nodes/shapes/Triangle";
 import TriangleDown from "../lib/network/modules/components/nodes/shapes/TriangleDown";
+import CircleAroundCircle from "../lib/network/modules/components/nodes/shapes/CircleAroundCircle";
+
 
 describe("Node Shapes", function(): void {
   const generateOptions = (): any => ({
@@ -312,6 +314,17 @@ describe("Node Shapes", function(): void {
     {
       name: "TriangleDown",
       Clazz: TriangleDown,
+      distanceToBorder: 50,
+      boundingBox: {
+        top: -982,
+        right: 31,
+        bottom: -920,
+        left: -31
+      }
+    },
+    {
+      name: "CircleAroundCircle",
+      Clazz: CircleAroundCircle,
       distanceToBorder: 50,
       boundingBox: {
         top: -982,

@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 0.0.0-no-version
- * @date    2019-12-13T10:28:02Z
+ * @date    2019-12-13T15:11:11Z
  *
  * @copyright (c) 2011-2017 Almende B.V, http://almende.com
  * @copyright (c) 2018-2019 visjs contributors, https://github.com/visjs
@@ -589,7 +589,6 @@
 	 * @param {number} r radius
 	 * @param {string} color color
 	 */
-	// eslint-disable-next-line require-jsdoc
 
 	function drawCircleAroundCircle(ctx, x, y, r, color) {
 	  ctx.beginPath();
@@ -32004,7 +32003,7 @@
 	      this.left = x - this.width / 2;
 	      this.top = y - this.height / 2;
 	      this.initContextForDraw(ctx, values);
-	      ctx.circleAroundCircle(x, y, values.size, values.color);
+	      drawCircleAroundCircle(ctx, x, y, values.size, values.color);
 	      this.performFill(ctx, values);
 
 	      if (this.options.label !== undefined) {
