@@ -142,6 +142,41 @@ export function drawCircleAroundCircle(
 }
 
 /**
+ * Draw a squareAroundSquare shape in downward orientation
+ * @param {number} x horizontal center
+ * @param {number} y vertical center
+ * @param {number} r radius
+ * @param {string} color color
+ */
+
+export function drawSquareAroundSquare(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  r: number,
+  color: string
+): void {
+  ctx.beginPath();
+
+  ctx.fillStyle = color;
+  ctx.arc(x, y, r + 11, 0, 2 * Math.PI, false);
+  ctx.fill();
+  ctx.closePath();
+
+  ctx.beginPath();
+  ctx.fillStyle = "#fff";
+  ctx.arc(x, y, r + 9, 0, 2 * Math.PI, false);
+  ctx.fill();
+  ctx.closePath();
+
+  ctx.beginPath();
+  ctx.fillStyle = color;
+  ctx.arc(x, y, r, 0, 2 * Math.PI, false);
+  ctx.fill();
+  ctx.closePath();
+}
+
+/**
  * Draw a star.
  *
  * @param ctx - The context this shape will be rendered to.
@@ -424,7 +459,8 @@ const shapeMap = {
   star: drawStar,
   triangle: drawTriangle,
   triangleDown: drawTriangleDown,
-  circleAroundCircle: drawCircleAroundCircle
+  circleAroundCircle: drawCircleAroundCircle,
+  squareAroundSquare: drawSquareAroundSquare
 };
 
 /**
